@@ -45,28 +45,57 @@ class WhisperTranscriber:
         return text
 
     def transcribe(self, audio_path: str, lang: Optional[str] = None):
-        # 使用 whisper.cpp CLI 進行翻譯
+        import langdetect
+        import shutil
+        # 使用 whisper.cpp CLI 進行翻譯或原文輸出
         with tempfile.TemporaryDirectory() as tmpdir:
+            # 先將音檔轉成 16kHz 單聲道 PCM wav
+            converted_path = os.path.join(tmpdir, "converted.wav")
+            ffmpeg_cmd = [
+                "ffmpeg", "-y", "-i", audio_path,
+                "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", converted_path
+            ]
+            try:
+                subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except Exception as e:
+                logging.error(f"[WhisperTranscriber] ffmpeg 轉檔失敗: {e}")
+                raise RuntimeError(f"ffmpeg 轉檔失敗: {e}")
+
             output_base = os.path.join(tmpdir, "result")
             # 若 self.model_path 不是絕對路徑，嘗試自動補全
             model_path = self.model_path
             if not os.path.isabs(model_path) and not os.path.exists(model_path):
-                # 預設搜尋 ~/.local/share/whispercpp/ggml-medium.bin
                 home = os.path.expanduser("~")
                 candidate = os.path.join(home, ".local/share/whispercpp", f"ggml-{model_path}.bin")
                 if os.path.exists(candidate):
                     model_path = candidate
+            # 語言偵測（可選）
+            detected_lang = None
+            try:
+                import speech_recognition as sr
+                r = sr.Recognizer()
+                with sr.AudioFile(converted_path) as source:
+                    audio = r.record(source)
+                detected_lang = r.recognize_google(audio, show_all=True)
+            except Exception as e:
+                logging.warning(f"[WhisperTranscriber] 語音語言偵測失敗: {e}")
+            # 組合 CLI 參數
             cmd = [
                 "./whisper.cpp/build/bin/whisper-cli",
-                audio_path,
+                converted_path,
                 "--model", model_path,
-                "--translate",
                 "--output-txt",
                 "--output-srt",
                 "--output-file", output_base
             ]
             if lang:
                 cmd += ["--language", lang]
+                if lang != "en":
+                    cmd += ["--translate"]
+            else:
+                if detected_lang and not (isinstance(detected_lang, str) and detected_lang.startswith("en")):
+                    cmd += ["--translate"]
+            logging.info(f"[WhisperTranscriber] CLI 參數: {' '.join(cmd)}")
             try:
                 subprocess.run(cmd, check=True)
             except Exception as e:
@@ -86,5 +115,5 @@ class WhisperTranscriber:
             return {
                 "text": text,
                 "srt": srt,
-                "segments": [],  # CLI 無法直接取得 segments
+                "segments": [],
             }
