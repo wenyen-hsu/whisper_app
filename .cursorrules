@@ -1,0 +1,80 @@
+# 語音轉文字應用開發規範
+
+## 技術架構
+- **技術棧**: 
+  - 後端: Python + FastAPI
+  - 模型: Whisper.cpp 本地模型
+  - 前端: React + Material-UI
+  - 音訊處理: FFmpeg
+
+## 核心原則
+- **隱私優先**: 
+  - 所有音訊處理必須在本地完成
+  - 禁止呼叫任何雲端 API
+  - 確保資料不會離開本地環境
+
+## 功能需求
+- **音訊輸入**:
+  - 支援 WAV/MP3 檔案上傳
+  - 支援即時麥克風輸入
+  - 檔案大小限制: 500MB
+- **轉錄輸出**:
+  - 自動偵測語言
+  - 生成 .srt 字幕檔
+  - 提供時間戳記版本
+  - 提供純文字版本
+
+## 程式碼規範
+- **Python 後端**:
+  - 使用 type hints
+  - Google 風格註解
+  - 遵循 PEP8 規範
+  - Black 自動格式化
+  - 檔案結構:
+    - `src/api/`: API 路由
+    - `src/transcribe/`: 轉錄邏輯
+    - `src/utils/`: 工具函數
+
+- **React 前端**:
+  - 使用 Material-UI 組件
+  - 實現拖放上傳
+  - 顯示轉錄進度條
+  - 暗色主題優先
+  - 檔案結構:
+    - `frontend/src/components/`: UI 組件
+    - `frontend/src/hooks/`: 自定義 Hooks
+    - `frontend/src/services/`: API 服務
+
+## 模型整合規則
+Globs: 'src/transcribe/*.py'
+- 使用 whisper.cpp Python binding
+- 預設使用 medium 模型
+- 記憶體優化策略:
+  - 音訊分塊處理
+  - 自動清理暫存
+  - 記憶體使用監控
+
+## 效能優化
+- **音訊處理**:
+  - 使用 FFmpeg 預處理
+  - 支援多執行緒處理
+  - GPU 加速支援
+- **錯誤處理**:
+  - 檔案類型驗證
+  - 記憶體不足處理
+  - 詳細錯誤訊息
+
+## API 規範
+Globs: 'src/api/**/*.py'
+- RESTful API 設計
+- 請求/回應格式:
+  - 成功: `{"status": "success", "data": {...}}`
+  - 錯誤: `{"status": "error", "message": "..."}`
+- 速率限制: 100 請求/分鐘
+- 檔案上傳限制: 500MB
+
+## 測試要求
+- 單元測試覆蓋率 > 80%
+- 整合測試關鍵流程
+- 效能測試基準
+- 記憶體使用監控

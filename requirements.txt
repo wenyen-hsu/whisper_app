@@ -1,0 +1,12 @@
+# Requires Python 3.11 (Apple Silicon/arm64 建議)
+fastapi==0.115.12
+uvicorn==0.34.2
+python-multipart==0.0.20
+whispercpp==0.0.13  # 必須手動下載模型至 ~/.local/share/whispercpp/ggml-medium.bin
+ffmpeg-python==0.2.0
+soundfile==0.12.1
+pydantic==2.11.4
+starlette==0.46.2
+pytest==8.3.5
+pytest-cov==6.1.1
+numpy
