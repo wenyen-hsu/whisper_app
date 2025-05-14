@@ -1,10 +1,12 @@
 # Requires Python 3.11 (Apple Silicon/arm64 建議)
+# 建議使用 Python 3.10 以獲得最佳相容性
+# 請確保本機已安裝 ffmpeg，並注意 tiktoken、torch 等依賴版本相容性
 fastapi==0.115.12
 uvicorn==0.34.2
 python-multipart==0.0.20
-whispercpp==0.0.13  # 必須手動下載模型至 ~/.local/share/whispercpp/ggml-medium.bin
+whispercpp==0.0.17
 ffmpeg-python==0.2.0
-soundfile==0.12.1
+soundfile
 pydantic==2.11.4
 starlette==0.46.2
 pytest==8.3.5

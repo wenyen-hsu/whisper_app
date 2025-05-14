@@ -74,25 +74,20 @@ async def transcribe_audio(
         return JSONResponse(status_code=500, content={"status": "error", "message": "音訊轉檔失敗，產生的 wav 檔案為空，請確認上傳檔案格式與內容。"})
 
     try:
-        result = transcriber.transcribe(wav_path)
+        result = transcriber.transcribe(wav_path, lang=language)
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": "error", "message": f"語音轉錄失敗: {str(e)}"})
-
-    saved_files = {}
-    if save_path:
-        save_dir = os.path.dirname(save_path)
-        if save_dir and not os.path.exists(save_dir):
-            os.makedirs(save_dir, exist_ok=True)
-        text_path = save_path + ".txt"
-        with open(text_path, "w", encoding="utf-8") as f:
-            f.write(result.get("text", ""))
-        saved_files["text"] = text_path
-        srt_path = save_path + ".srt"
-        with open(srt_path, "w", encoding="utf-8") as f:
-            f.write(result.get("srt", ""))
-        saved_files["srt"] = srt_path
 
     background_tasks.add_task(os.remove, temp_path)
     background_tasks.add_task(os.remove, wav_path)
 
-    return {"status": "success", "data": result, "saved_files": saved_files}
+    # 回傳建議的檔案名稱，讓前端下載時可用
+    suggested_base = save_path if save_path else f"record_{unique_id}"
+    return {
+        "status": "success",
+        "data": result,
+        "suggested_filenames": {
+            "text": suggested_base + ".txt",
+            "srt": suggested_base + ".srt"
+        }
+    }

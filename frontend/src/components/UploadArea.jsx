@@ -30,17 +30,6 @@ const UploadArea = ({ onFileAccepted, uploading, progress, onRecordClick, savePa
       <Typography variant="h6" color="text.secondary">
         {isDragActive ? '放開檔案以上傳' : '拖曳或點擊以上傳音訊/影片檔案 (WAV/MP3/MP4/M4A, 500MB 以內)'}
       </Typography>
-      <TextField
-        label="儲存路徑 (不含副檔名)"
-        variant="outlined"
-        size="small"
-        fullWidth
-        sx={{ mt: 2, mb: 2 }}
-        value={savePath}
-        onChange={e => setSavePath(e.target.value)}
-        placeholder="如 uploads/myresult"
-        disabled={uploading}
-      />
       <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={e => { e.stopPropagation(); onRecordClick && onRecordClick(); }}>
         即時錄音
       </Button>

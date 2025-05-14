@@ -21,6 +21,37 @@ whisper/
 - **ffmpeg**（需安裝於系統）
 - **whispercpp==0.0.13**（需手動下載模型）
 
+## 推薦安裝流程（Python 3.10 + venv）
+
+1. 安裝 pyenv（如尚未安裝）
+   ```sh
+   brew install pyenv
+   ```
+2. 安裝 Python 3.10（建議 3.10.14）
+   ```sh
+   pyenv install 3.10.14
+   ```
+3. 建立並啟用專案虛擬環境
+   ```sh
+   pyenv local 3.10.14
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+4. 升級 pip 並安裝依賴
+   ```sh
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+5. 確認 ffmpeg 已安裝（macOS）
+   ```sh
+   brew install ffmpeg
+   ```
+
+> **注意：**
+> - 若遇到 torch、tiktoken 等依賴安裝問題，請務必使用 Python 3.10。
+> - Apple Silicon/arm64 用戶建議全程用 pyenv 管理 Python 版本。
+> - whispercpp 0.0.17 需手動下載 ggml-medium.bin 至 ~/.local/share/whispercpp/。
+
 ## 安裝步驟
 
 1. **安裝 Python 3.11（建議用 pyenv）**

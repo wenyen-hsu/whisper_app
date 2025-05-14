@@ -7,6 +7,8 @@ import subprocess  # 直接呼叫 ffmpeg 並捕捉 stderr
 import soundfile as sf  # 讀取 wav 檔
 import numpy as np
 from whispercpp import Whisper  # Whisper.cpp 綁定
+import logging
+import tempfile
 
 MODEL_PATH = os.getenv("WHISPER_MODEL_PATH", "medium")  # 讀取模型路徑環境變數
 
@@ -27,31 +29,62 @@ class WhisperTranscriber:
             raise RuntimeError(f"ffmpeg error: {err_msg}")
         return output_path  # 回傳輸出路徑
 
-    def transcribe(self, audio_path: str) -> Dict[str, Any]:
-        """Transcribe audio file using whisper.cpp."""
-        # 讀取 wav 檔案內容為 float32 numpy array
-        data, samplerate = sf.read(audio_path, dtype='float32')
-        print(f"[DEBUG] 讀取音訊: {audio_path}, 取樣率: {samplerate}, 資料長度: {len(data)}")
-        if len(data.shape) > 1:
-            data = data[:, 0]  # 只取第一個 channel（保險起見）
-        data = data.tolist()
-        # 僅帶 return_segments 參數，不帶 task 參數，確保以原語言輸出
-        result = self.whisper.transcribe(data)
-        print(f"[DEBUG] whisper.transcribe 回傳: {result}")
-        if isinstance(result, str):
-            print(f"[DEBUG] 辨識結果為 str: {result}")
+    def _segments_to_srt(self, segments):
+        def format_time(seconds):
+            ms = int((seconds - int(seconds)) * 1000)
+            h = int(seconds // 3600)
+            m = int((seconds % 3600) // 60)
+            s = int(seconds % 60)
+            return f"{h:02}:{m:02}:{s:02},{ms:03}"
+        text = ""
+        for idx, seg in enumerate(segments, 1):
+            start = format_time(seg.get("start", 0))
+            end = format_time(seg.get("end", 0))
+            seg_text = seg.get("text", "")
+            text += f"{idx}\n{start} --> {end}\n{seg_text}\n\n"
+        return text
+
+    def transcribe(self, audio_path: str, lang: Optional[str] = None):
+        # 使用 whisper.cpp CLI 進行翻譯
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_base = os.path.join(tmpdir, "result")
+            # 若 self.model_path 不是絕對路徑，嘗試自動補全
+            model_path = self.model_path
+            if not os.path.isabs(model_path) and not os.path.exists(model_path):
+                # 預設搜尋 ~/.local/share/whispercpp/ggml-medium.bin
+                home = os.path.expanduser("~")
+                candidate = os.path.join(home, ".local/share/whispercpp", f"ggml-{model_path}.bin")
+                if os.path.exists(candidate):
+                    model_path = candidate
+            cmd = [
+                "./whisper.cpp/build/bin/whisper-cli",
+                audio_path,
+                "--model", model_path,
+                "--translate",
+                "--output-txt",
+                "--output-srt",
+                "--output-file", output_base
+            ]
+            if lang:
+                cmd += ["--language", lang]
+            try:
+                subprocess.run(cmd, check=True)
+            except Exception as e:
+                logging.error(f"[WhisperTranscriber] whisper.cpp CLI 執行失敗: {e}")
+                raise
+            # 讀取 txt 結果
+            txt_path = output_base + ".txt"
+            srt_path = output_base + ".srt"
+            text = ""
+            srt = ""
+            if os.path.exists(txt_path):
+                with open(txt_path, "r", encoding="utf-8") as f:
+                    text = f.read()
+            if os.path.exists(srt_path):
+                with open(srt_path, "r", encoding="utf-8") as f:
+                    srt = f.read()
             return {
-                "srt": "",
-                "text": result,
-                "segments": [],
+                "text": text,
+                "srt": srt,
+                "segments": [],  # CLI 無法直接取得 segments
             }
-        print(f"[DEBUG] SRT: {result.get('srt', '')[:100]}...")
-        print(f"[DEBUG] text: {result.get('text', '')[:100]}...")
-        print(f"[DEBUG] segments 數量: {len(result.get('segments', []))}")
-        if len(result.get('segments', [])) > 0:
-            print(f"[DEBUG] 第一個 segment: {result.get('segments', [])[0]}")
-        return {
-            "srt": result.get("srt", ""),
-            "text": result.get("text", ""),
-            "segments": result.get("segments", []),
-        }

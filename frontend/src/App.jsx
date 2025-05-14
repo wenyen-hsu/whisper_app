@@ -132,8 +132,6 @@ function App() {
             </FormGroup>
             <Alert severity="info" sx={{ mb: 2 }}>
               下載檔案將由瀏覽器自動存到「下載」資料夾，或依您的瀏覽器設定彈出另存新檔視窗，無法直接指定本機任意資料夾。
-              <br />
-              <b>伺服器儲存路徑：</b> {result.saved_files?.text || result.saved_files?.srt || '未指定'}
             </Alert>
             <Typography variant="h6">純文字結果：</Typography>
             <Paper sx={{ p: 2, mb: 2, whiteSpace: 'pre-wrap' }}>{result.text}</Paper>

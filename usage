@@ -1,0 +1,75 @@
+當然可以！以下是 Whisper 0.0.17 轉錄多語言並原文輸出的**Markdown 格式教學**：
+
+---
+
+# Whisper 0.0.17 多語言原文轉錄教學
+
+## 1. 適用模型選擇
+
+- 請使用支援多語言的模型（如 `medium` 或 `large`）。
+- **不要**使用僅支援英文的模型（如 `base.en`、`small.en`）。
+
+---
+
+## 2. 基本指令
+
+```bash
+whisper your_audio_file.mp3 --model medium --task transcribe
+```
+- `--task transcribe`：強制逐字原文轉錄，不翻譯成英文。
+- 不加 `--language` 參數，Whisper 會自動偵測語言，遇到多語言時會自動切換。
+
+---
+
+## 3. 輸出 SRT 字幕檔
+
+```bash
+whisper your_audio_file.mp3 --model medium --task transcribe --output_format srt
+```
+- 這樣會直接產生 SRT 字幕檔，內容為音檔原文（多語言混合）。
+
+---
+
+## 4. Python API 範例
+
+```python
+import whisper
+
+model = whisper.load_model("medium")
+result = model.transcribe("your_audio_file.mp3", task="transcribe")
+print(result["text"])
+```
+- 不指定 `language`，Whisper 會自動偵測語言並原文輸出。
+
+---
+
+## 5. 實務注意事項
+
+- Whisper 理論上能自動偵測並原文輸出多語言，但偶爾會偵測錯誤或將部分內容翻譯成英文。
+- 若遇到偵測不準，可嘗試加上 `--language` 指定主要語言，但這會讓所有內容都以該語言輸出，對於真正混合語言的音檔可能不理想。
+- **建議人工檢查輸出結果，必要時手動修正。**
+
+---
+
+## 6. 重點整理
+
+- 使用 `medium` 或 `large` 多語言模型
+- 指令加上 `--task transcribe`
+- 不加 `--language` 參數
+- 可加 `--output_format srt` 產生字幕檔
+- 多語言內容理論上會原文輸出，但需人工檢查
+
+---
+
+how to ouput srt:
+def generate_subtitle_file(language, segments):
+    subtitle_file = f"sub-{language}.srt"
+    text = ""
+    for index, segment in enumerate(segments):
+        segment_start = format_time(segment.start)
+        segment_end = format_time(segment.end)
+        text += f"{index+1}\n{segment_start} --> {segment_end}\n{segment.text}\n\n"
+    with open(subtitle_file, "w") as f:
+        f.write(text)
+    return subtitle_file
+

@@ -3,7 +3,6 @@ import axios from 'axios';
 export const uploadAudio = async (file, savePath, onUploadProgress) => {
   const formData = new FormData();
   formData.append('file', file);
-  if (savePath) formData.append('save_path', savePath);
   console.log('[uploadAudio] 準備送出 /api/transcribe 請求, file:', file, 'savePath:', savePath);
   try {
     const response = await axios.post('/api/transcribe', formData, {
