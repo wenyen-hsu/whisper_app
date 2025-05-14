@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme, CssBaseline, Container, Typography, Box, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, FormControlLabel, Checkbox, Alert, LinearProgress } from '@mui/material';
 import UploadArea from './components/UploadArea';
 import useUpload from './hooks/useUpload';
@@ -83,6 +83,13 @@ function App() {
       statusText = '轉錄完成';
     }
   }
+
+  // 狀態自動切換：只要 result 或 error 出現就設為 done
+  useEffect(() => {
+    if ((result || error) && (status === 'uploading' || status === 'transcribing')) {
+      setStatus('done');
+    }
+  }, [result, error]);
 
   return (
     <ThemeProvider theme={darkTheme}>
