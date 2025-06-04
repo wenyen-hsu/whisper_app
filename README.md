@@ -77,3 +77,11 @@ uvicorn src.api.main:app --reload
 
 ---
 如需更多細節，請參考原始碼內的註解。
+
+## SwiftUI 簡易介面
+
+專案新增 `SwiftUIApp` 目錄，內含 `WhisperSwiftApp.swift`，提供 macOS 上的簡易轉錄介面。
+使用者可選擇音檔並點擊「Transcribe」按鈕，程式會自動調用 `ffmpeg` 轉檔並透過
+`whisper.cpp` 產生文字結果，最後顯示於畫面上。
+
+此介面僅為示範，需自行確保 `whisper.cpp` 執行檔位置正確以及已安裝 `ffmpeg`。
