@@ -62,7 +62,10 @@ struct ContentView: View {
                 return
             }
             let whisper = Process()
-            whisper.launchPath = "./whisper.cpp/build/bin/whisper-cli"
+            // CRITICAL: User MUST replace this with the ABSOLUTE path to their whisper-cli executable.
+            // Example: "/Users/yourname/whisper.cpp/main" or "/opt/homebrew/bin/whisper"
+            // The original relative path "./whisper.cpp/build/bin/whisper-cli" is very likely to fail.
+            whisper.launchPath = "/ABSOLUTE/PATH/TO/YOUR/whisper-cli"
             whisper.arguments = [tmp.path, "--model", "medium", "--output-txt", "--output-file", tmp.deletingPathExtension().path]
             whisper.standardError = Pipe()
             whisper.standardOutput = Pipe()
